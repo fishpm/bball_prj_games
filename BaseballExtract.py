@@ -2,6 +2,7 @@ import glob
 import re
 import os
 import csv
+import numpy
 
 class YearSummary(object):
 	
@@ -57,6 +58,7 @@ class YearSummary(object):
 		
 		# Dictionary of players with data.
 		self.players = {}
+		self.players_std = {}
 		
 		# Error dictionary for unexpected play-by-play events.
 		self.err={'file': [], 'err': []}
@@ -123,7 +125,7 @@ class YearSummary(object):
 					
 					print 'Done with', file
 			
-			# Read roster file for additional player info (e.g., name, team and playerID).
+# 			Read roster file for additional player info (e.g., name, team and playerID).
 			for file in glob.glob(self.year_roster):
 				with open(file,'r') as f:
 # 					print "Adding names to",file
@@ -136,24 +138,39 @@ class YearSummary(object):
 							self.players[parts[0]]['id'] = parts[0]
 					print "Finished adding names to",file
 			
-			# List of all playerIDs.
+# 			List of all playerIDs.
 			pk = self.players.keys()
 			
-			# Update .csv file with season information for each player, for each year.
-			print "Updating", outname
-			with open(outname,'a') as csvfile:
-				# Fieldnames in .csv are keys from self.players{}.
-				fnames = self.players[pk[0]].keys()
-				writer = csv.DictWriter(csvfile, fieldnames = fnames)
-				if os.stat(outname).st_size == 0:
-					print "Header written!"
-					writer.writeheader()
+			for name in pk:
+				self.players_std[name] = {'Year': y, 'S': 0.0, 'D': 0.0, 'T': 0.0, 'HR': 0.0, 'BB': 0.0, 'K': 0.0, 'HP': 0.0: 'IBB': 0.0, 'AVG': 0.0, 'SLG': 0.0, 'OPS': 0.0}
 				
-				for name in pk:
-					writer.writerow(self.players[name])
+				l = [b[name]['S']/float(b[name]['PA']) for name in b.keys()]
+				(l - mean(l))/std(l) 
+				
+				if sum([b[name]['PA'] for name in b.keys()]):
+					self.players_std[name]['S'] = sum([b[name]['S'] for name in b.keys()])/float(sum([b[name]['PA'] for name in b.keys()]))
+					
+					self.players_std[name]['D'] = sum([b[name]['D'] for name in b.keys()])/float(sum([b[name]['PA'] for name in b.keys()]))
+					
+					self.players_std[name]['T'] = sum([b[name]['T'] for name in b.keys()])/float(sum([b[name]['PA'] for name in b.keys()]))
+				
+				}
 			
-			print "Finished updating",outname
-		
+# # 			Update .csv file with season information for each player, for each year.
+# 			print "Updating", outname
+# 			with open(outname,'a') as csvfile:
+# # 				Fieldnames in .csv are keys from self.players{}.
+# 				fnames = self.players[pk[0]].keys()
+# 				writer = csv.DictWriter(csvfile, fieldnames = fnames)
+# 				if os.stat(outname).st_size == 0:
+# 					print "Header written!"
+# 					writer.writeheader()
+# 				
+# 				for name in pk:
+# 					writer.writerow(self.players[name])
+# 			
+# 			print "Finished updating",outname
+# 		
 		return self.players
 	
 	
@@ -532,7 +549,8 @@ class YearSummary(object):
 						c += 1
 						
 						if int(row['Year']) == self.min_year:
-							self.warn.append('Entry for %s found from %s, expand YearSummary to avoid truncating data included.' % (id, self.min_year)
+							print 'temp'
+							self.warn.append('Entry for %s found from %s, expand YearSummary to avoid truncating data included.' % (id, self.min_year))
 						
 						# Update info in ctd (career-to-date) dictionary.
 						self.ctd[id]['TB'] += int(row['TB'])
