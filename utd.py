@@ -14,7 +14,7 @@ class YearGames(object):
 		# Year from which up-to-date info will be drawn.
 		self.year_start = year_start
 		
-		# Game list. Dictionary of all games played.
+		# Game list. Dictionary games played within current year.
 		self.glist = {}
 		
 		# Up-to-date stats. Running record of stats from current season for each player.

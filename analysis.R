@@ -1,4 +1,7 @@
 rm(list=ls())
+
+library(randomForest)
+library(e1071)
 data <- read.csv('~/Documents/projects/bball_prj_games/UTD_2014.csv')
 outcome <- read.csv('~/Documents/projects/bball_prj_games/GL2014.csv')
 
@@ -56,9 +59,44 @@ test <- seq(n)[-c(train,cv)]
 
 dd$win.numeric <- as.numeric(dd[,'winner'])-1 # home team win == 1
 
-f <- paste('win.numeric ~ ', paste(c(hnames, anames), collapse = ' + '), sep = '')
+f <- as.formula(paste('win.numeric ~ ', paste(c(hnames, anames), collapse = ' + '), sep = ''))
 l <- glm(f, family = binomial(logit), data = dd[train,])
 summary(l)
+
+######
+## randomForest model START
+######
+f <- as.formula(paste('winner ~ ', paste(c(hnames, anames), collapse = ' + '), sep = ''))
+rF <- randomForest(f, data = dd[train,])
+pred <- predict(rF, dd[cv,], type='response')
+actual <- dd[cv,'winner']
+perf <- table(pred,actual)
+precision <- perf['home','home']/(perf['home','home'] + perf['home','away'])
+recall <- perf['home','home']/(perf['home','home'] + perf['away','home'])
+f1 <- 2*((precision*recall)/(precision+recall))
+acc <- (sum(diag(perf))/sum(perf))*100
+print (acc)
+######
+## randomForest model END
+######
+
+######
+## SVM START
+######
+f <- as.formula(paste('winner ~ ', paste(c(hnames, anames), collapse = ' + '), sep = ''))
+svm <- svm(f, data = dd[train,])
+pred <- predict(svm, dd[cv,], type='response')
+actual <- dd[cv,'winner']
+perf <- table(pred,actual)
+precision <- perf['home','home']/(perf['home','home'] + perf['home','away'])
+recall <- perf['home','home']/(perf['home','home'] + perf['away','home'])
+f1 <- 2*((precision*recall)/(precision+recall))
+acc <- (sum(diag(perf))/sum(perf))*100
+print (acc)
+######
+## SVM END
+######
+
 
 performance <- lapply(seq(1000), function(i) part_fit(dd))
 acc_all <- sapply(performance, with, acc)

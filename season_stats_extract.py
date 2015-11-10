@@ -12,25 +12,28 @@ class YearSummary(object):
 		# Ending year
 		self.year_finish = year_finish
 		
-		# Years are capped between these years.
+		# Possible years bounded by these years.
 		self.min_year = 1980
 		self.max_year = 2014
 		
 		# Dictionary of players with data.
 		self.players = {}
-
-		# Does not appear to be used.  Delete?		
-# 		self.ps = {}
 		
 		# Error dictionary for unexpected play-by-play events.
 		self.err={'file': [], 'err': []}
 		
 		# Miscellaneous events skipped when reading play-by-play.
 		self.non_batter_events = {
-				"BK": 'balk', "CS": 'caught stealing',"DI": 'defensive indifference',
-				"OA": 'misc baserunner advance',"PB": 'passed ball',"WP": 'wild pitch',
-				"PO": 'picked off',"POCS": 'picked off charged with caught stealing',
-				"SB": 'stolen base',"NP": 'Not a play (i.e., substitution or otherwise',
+				"BK": 'balk', 
+				"CS": 'caught stealing',
+				"DI": 'defensive indifference',
+				"OA": 'misc baserunner advance',
+				"PB": 'passed ball',
+				"WP": 'wild pitch',
+				"PO": 'picked off',
+				"POCS": 'picked off charged with caught stealing',
+				"SB": 'stolen base',
+				"NP": 'Not a play (i.e., substitution or otherwise',
 				"FLE": 'Fielding error on foul ball (i.e., foul ball)'}
 		
 		# Make sure years entries are valid.
@@ -52,50 +55,68 @@ class YearSummary(object):
 		""" Reads play-by-play files for a given year and return a dictionary with player id and assorted stats from that year."""
 		
 		# Filename output based on start and finish years.
-		outname = "YearSummary"+str(self.year_start)+"_"+str(self.year_finish)+".csv"
+		outname = "YearSummary" + str(self.year_start) + "_" + str(self.year_finish) + ".csv"
 		
-		# If filename output already exists, over-write it.
+		# If filename output already exists, remove it.
 		if os.path.isfile(outname):
 			print 'Warning: over-writing', outname
-			exist = 1
-		else: exist = 0
+			os.remove(outname)
 		
 		# Read through all play-by-play files for inclusive years.
-		for y in range(self.year_start,self.year_finish+1):
+		for y in range(self.year_start, self.year_finish + 1):
 			self.players = {}
-			self.pbp_path = "/Users/patrickfisher/Documents/mlb/retrosheet/pbp/"+str(y)+"*.EV*"
-			self.roster = "/Users/patrickfisher/Documents/mlb/retrosheet/pbp/*"+str(y)+".ROS"
+			self.pbp_path = "/Users/patrickfisher/Documents/mlb/retrosheet/pbp/" + str(y) + "*.EV*"
+			self.roster = "/Users/patrickfisher/Documents/mlb/retrosheet/pbp/*" + str(y) + ".ROS"
 		
-			# For each team file for each inclusive year...
+			# For each team file, for each inclusive year...
 			for file in glob.glob(self.pbp_path):
 				with open(file,'r') as f:
 					
 					print "Working on",file
 					
-					# For each line a team file for a given year...
+					# For each line in a team file for a given year...
 					for line in f:
 						
 						# 'play' indicates a game event occurs. Read this line.
 						if line.startswith('play'):
 							parts = line.split(',')
-							# Check that 'play' is a "batter event" and whether the playerID has already been added.
+							# If a new playerID for current year (not in self.players{}) and the 'play' is a "batter event"...
 							if all([parts[3] not in self.players.keys(), not any(event in parts[6] for event in self.non_batter_events.keys())]):
 								
-								# Add playerID for given year if it does not already exist.
-								self.players[parts[3]] = {'Year': y, 'PA': 0,"AB": 0,"H": 0,"S": 0,"D": 0,"T": 0,"HR": 0,
-								"BB": 0,"K": 0,"HP":0,"IBB": 0,"TB": 0,"AVG": 0.0,"OBP": 0.0,"SLG": 0.0,
-								"OPS":0,"ROE":0,"FC":0,"SF":0,"SH":0}
+								# Add playerID for the current year.
+								self.players[parts[3]] = {
+								'Year': y, 
+								'PA': 0,
+								"AB": 0,
+								"H": 0,
+								"S": 0,
+								"D": 0,
+								"T": 0,
+								"HR": 0,
+								"BB": 0,
+								"K": 0,
+								"HP":0,
+								"IBB": 0,
+								"TB": 0,
+								"AVG": 0.0,
+								"OBP": 0.0,
+								"SLG": 0.0,
+								"OPS":0,
+								"ROE":0,
+								"FC":0,
+								"SF":0,
+								"SH":0}
 								
 								# Read 'play' event and update playerID stats.
 								self.event_check(parts[3],parts[6],self.players)
 							
-							# If playerID entry already exists, simply update playerID stats.
+							# If playerID already exists in self.players{} for current year, update playerID stats.
 							elif all([not any(event in parts[6] for event in self.non_batter_events.keys())]):
 								self.event_check(parts[3],parts[6],self.players)
 					
 					print 'Done with', file
 			
-			# Read roster file to get additional player info.
+			# Read roster file for additional player info (e.g., name, team and playerID).
 			for file in glob.glob(self.roster):
 				with open(file,'r') as f:
 # 					print "Adding names to",file
@@ -111,12 +132,12 @@ class YearSummary(object):
 			# List of all playerIDs.
 			pk = self.players.keys()
 			
-			# Update .csv file.
+			# Update .csv file with season information for each player, for each year.
 			print "Updating", outname
 			with open(outname,'a') as csvfile:
-				# Fieldnames in .csv are statistical categories and player info recorded for each player.
+				# Fieldnames in .csv are keys from self.players{}.
 				fnames = self.players[pk[0]].keys()
-				writer = csv.DictWriter(csvfile,fieldnames = fnames)
+				writer = csv.DictWriter(csvfile, fieldnames = fnames)
 				if os.stat(outname).st_size == 0:
 					print "Header written!"
 					writer.writeheader()
@@ -205,12 +226,15 @@ class YearSummary(object):
 	
 		# Hits are sum of singles, double, triples and homers.
 		dict[p3]["H"] = dict[p3]["S"] + dict[p3]["D"] + dict[p3]["T"] + dict[p3]["HR"]
+		
 		# Total bases are "weighted hits".
 		dict[p3]["TB"] = dict[p3]["S"] + dict[p3]["D"]*2 + dict[p3]["T"]*3 + dict[p3]["HR"]*4
+		
 		# Calculate batting average if there is at least one AB (otherwise denominator is 0)
 		if dict[p3]["AB"]:
 			dict[p3]["AVG"] = float(format(float(dict[p3]["H"])/dict[p3]["AB"],'0.3f'))
 			dict[p3]["SLG"] = float(format(float(dict[p3]["TB"])/dict[p3]["AB"],'0.3f'))
+		
 		# Calculate on-base percentage if one of AB, BB, HP or SF has occurred (otherwise denominator is 0)
 		if (dict[p3]["AB"]+ dict[p3]["BB"] + dict[p3]["HP"] + dict[p3]["SF"]):
 			dict[p3]["OBP"] = float(format((float(dict[p3]["H"]) + dict[p3]["BB"] + dict[p3]["HP"])/(dict[p3]["AB"]+ dict[p3]["BB"] + dict[p3]["HP"] + dict[p3]["SF"]),'0.3f'))
