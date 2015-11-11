@@ -103,10 +103,10 @@ class YearSummary(object):
 					
 					print 'Done with', file
 			
-# 			Read roster file for additional player info (e.g., name, team and playerID).
+ 			# Read roster file for additional player info (e.g., name, team and playerID).
 			for file in glob.glob(self.year_roster):
 				with open(file,'r') as f:
-# 					print "Adding names to",file
+					# print "Adding names to",file
 					for line in f:
 						parts = line.split(',')
 						if parts[0] in self.players.keys():
@@ -116,42 +116,42 @@ class YearSummary(object):
 							self.players[parts[0]]['id'] = parts[0]
 					print "Finished adding names to",file
 			
-# 			List of all playerIDs.
+			# List of all playerIDs.
 			pk = self.players.keys()
 
-# 			Compute within-season avg and std for particular stats.
+			# Compute within-season avg and std for particular stats.
 			avg_std_season = {'S': [0,0], 'D': [0,0], 'T': [0,0], 'HR': [0,0], 'K': [0,0], 'BB': [0,0]}
 			
 			z = ['S', 'D', 'T', 'HR', 'K', 'BB']
 			
-# 			For each stat in the list except the last...
+			# For each stat in the list except the last...
 			for item in z[:-1]:
 
-# 				First element in stat list is average
+				# First element in stat list is average
 				avg_std_season[item][0] = float(sum([self.players[name][item] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()])
 				
-# 				Second element in stat list is st. dev.
+				# Second element in stat list is st. dev.
 				avg_std_season[item][1] = np.std([self.players[name][item]/float(self.players[name]['AB']) for name in self.players.keys() if self.players[name]['AB'] > 0])
 
-# 			Walks based off PA, not AB
+			# Walks based off PA, not AB
 			avg_std_season['BB'][0] = float(sum([self.players[name]['BB'] for name in self.players.keys()]))/sum([self.players[name]['PA'] for name in self.players.keys()])
 
-# 			Walks based off PA, not AB
+			# Walks based off PA, not AB
 			avg_std_season['BB'][1] = np.std([self.players[name]['BB']/float(self.players[name]['PA']) for name in self.players.keys() if self.players[name]['PA'] > 0])
 
-# 			Compute AVG league-wide average and st. dev.
+			# Compute AVG league-wide average and st. dev.
 			avg_std_season['AVG'] = [float(sum([self.players[name]['H'] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()]), np.std([self.players[name]['AVG'] for name in self.players.keys()])]
 			
-# 			Compute SLG league-wide average and st.dev			
+			# Compute SLG league-wide average and st.dev			
 			avg_std_season['SLG'] = [float(sum([self.players[name]['TB'] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()]), np.std([self.players[name]['SLG'] for name in self.players.keys()])]
 			
-# 			Computer OBP league-wide average and st.dev
+			# Computer OBP league-wide average and st.dev
 			avg_std_season['OBP'] = [float(sum([self.players[name]['H'] + self.players[name]['BB'] + self.players[name]['HP'] for name in self.players.keys()]))/sum([self.players[name]['AB'] + self.players[name]['BB'] + self.players[name]['HP'] + self.players[name]['SF'] for name in self.players.keys()]), np.std([self.players[name]['OBP'] for name in self.players.keys()])]
 			
-# 			Compute fractional occurences for each player...
+			# Compute fractional occurences for each player...
 			for name in pk:
 				
-# 				Compute fractional stats...
+				# Compute fractional stats...
 				if self.players[name]['AB']:
 					self.players[name]['Sfrac'] = float(self.players[name]['S']) / self.players[name]['AB']
 					self.players[name]['Dfrac'] = float(self.players[name]['D']) / self.players[name]['AB']
@@ -171,11 +171,11 @@ class YearSummary(object):
 
 				else: self.players[name]['BBfrac'] = 0.0
 
-# 				Compute standardized stats...
+				# Compute standardized stats...
 				for stat in z:
 					self.players[name][stat+'z'] = (self.players[name][stat+'frac'] - avg_std_season[stat][0])/avg_std_season[stat][1]	
 										
-# 					Standardized rates constrained between [5,-5] to control outliers.
+					# Standardized rates constrained between [4,-4] to control outliers.
 					if self.players[name][stat+'z'] > 4:
 						self.players[name][stat+'z'] = 4.0
 					elif self.players[name][stat+'z'] < -4:
@@ -185,10 +185,10 @@ class YearSummary(object):
 				self.players[name]['SLGz'] = (self.players[name]['SLG'] - avg_std_season['SLG'][0])/avg_std_season['SLG'][1]
 				self.players[name]['OBPz'] = (self.players[name]['OBP'] - avg_std_season['OBP'][0])/avg_std_season['OBP'][1]
 			
-# 			Update .csv file with season information for each player, for each year.
+			# Update .csv file with season information for each player, for each year.
 			print "Updating", outname
 			with open(outname,'a') as csvfile:
-# 				Fieldnames in .csv are keys from self.players{}.
+				# Fieldnames in .csv are keys from self.players{}.
 				fnames = self.players[pk[0]].keys()
 				writer = csv.DictWriter(csvfile, fieldnames = fnames)
 				if os.stat(outname).st_size == 0:
@@ -554,7 +554,7 @@ class YearSummary(object):
  			# return {'utd': self.utd, 'g': self.g}
 	
 	def career_to_date(self, id, y):
-		""" Read exists yearly summary info file to determine player statistics up to the year before the one being evaluated. """
+		""" Read existing yearly summary info file to determine player statistics up to the year before the one being evaluated. """
 		"""
 		id = playerID
 		y = year on which career_to_date will be determined.
