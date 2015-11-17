@@ -186,7 +186,7 @@ hwin <- mean(dd$win.numeric)*100
 # Plot observed accuracy for n_perm permutations.
 beeswarm(acc_all, pch = 19, las = 1, bty = 'l', ylab = 'Accuracy')
 title(main = 'Model performance: permutation results')
-legend('topleft', lty = c(2,1), col = c('gray','black'), legend = c('Home WP'  ,'Mean Acc'), bty = 'n')
+legend('topleft', lty = c(1,2), col = c('black','gray'), legend = c('Mean Acc', 'Home WP'), bty = 'n')
 lines(c(0.8,1.2), rep(hwin,2), lwd = 3, lty = 2, col = 'gray')
 lines(c(0.8,1.2), rep(mean(acc_all),2), lwd = 3, col = 'black')
 mtext(paste('Mean Acc: ', signif(mean(acc_all),4), '%; Home WP: ', signif(hwin,4), '%', sep = ''))
@@ -198,7 +198,7 @@ dev.off()
 ####
 
 #######
-### LEARNING CURVES
+### LEARNING CURVES START
 #######
 
 # Choose min sample size based on # of predictors.
@@ -214,16 +214,22 @@ colnames(err) <- c('train','cv')
 # Plot training and cv errors.
 pdf('~/Documents/projects/bball_prj_games/learning_curve.pdf')
 
-# Training error.
+# Training last portion of training to see how lines converge.
 plot(err[,'train'] ~ n10, pch=19, bty = 'l', las = 1, xlab = 'Sample size', ylab = 'Error', ylim = range(err), xlim = c(1000,2000))
 # Testing error.
 points(err[,'cv'] ~ n10, pch=19, bty = 'l', las = 1, xlab = 'Sample size', ylab = 'Error',col = 'blue')
-title(main = "Learning curve: Up-to-date game information predicting game outcomes.")
+title(main = "Learning curve: Up-to-date game information predicting game outcomes.", sub = 'Sample size: 1000-2000')
 
+# All training error.
 plot(err[,'train'] ~ n10, pch=19, bty = 'l', las = 1, xlab = 'Sample size', ylab = 'Error', ylim = range(err))
+# All test error.
 points(err[,'cv'] ~ n10, pch=19, bty = 'l', las = 1, xlab = 'Sample size', ylab = 'Error',col = 'blue')
 lines(n10, err[,'train'])
 lines(n10, err[,'cv'], col = 'blue')
-title(main = "Learning curve: Up-to-date game information predicting game outcomes.", sub = 'Sample size: 1000-2000')
+title(main = "Learning curve: Up-to-date game information predicting game outcomes.")
 
 dev.off()
+
+#######
+### LEARNING CURVES END
+#######
