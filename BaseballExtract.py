@@ -126,21 +126,31 @@ class YearSummary(object):
 			
 			# For each stat in the list except the last...
 			for item in z[:-1]:
-
+				## Z-standardized values are computed based on mean and std estimated from set of players with > 75 PAs during a given season.
+				n = 75
+				
 				# First element in stat list is average
-				avg_std_season[item][0] = float(sum([self.players[name][item] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()])
+				avg_std_season[item][0] = float(sum([self.players[name][item] for name in self.players.keys() if self.players[name]['PA'] > n]))/sum([self.players[name]['AB'] for name in self.players.keys() if self.players[name]['PA'] > n])
 				
 				# Second element in stat list is st. dev.
-				avg_std_season[item][1] = np.std([self.players[name][item]/float(self.players[name]['AB']) for name in self.players.keys() if self.players[name]['AB'] > 0])
-
+				t1 = [float(self.players[name][item]) for name in self.players.keys() if self.players[name]['PA'] > n]
+				
+				t2 = [float(self.players[name]['AB']) for name in self.players.keys() if self.players[name]['PA'] > n]
+				
+				avg_std_season[item][1] = np.std([t1[self.counter]/t2[self.counter] for self.counter in range(0,len(t1))])
+			
 			# Walks based off PA, not AB
-			avg_std_season['BB'][0] = float(sum([self.players[name]['BB'] for name in self.players.keys()]))/sum([self.players[name]['PA'] for name in self.players.keys()])
-
+			avg_std_season['BB'][0] = float(sum([self.players[name]['BB'] for name in self.players.keys() if self.players[name]['PA'] > n]))/sum([self.players[name]['PA'] for name in self.players.keys() if self.players[name]['PA'] > n])
+			
 			# Walks based off PA, not AB
-			avg_std_season['BB'][1] = np.std([self.players[name]['BB']/float(self.players[name]['PA']) for name in self.players.keys() if self.players[name]['PA'] > 0])
-
+			t1 = [float(self.players[name]['BB']) for name in self.players.keys() if self.players[name]['PA'] > n]
+			
+			t2 = [float(self.players[name]['PA']) for name in self.players.keys() if self.players[name]['PA'] > n]
+			
+			avg_std_season['BB'][1] = np.std([t1[self.counter]/t2[self.counter] for self.counter in range(0,len(t1))])
+			
 			# Compute AVG league-wide average and st. dev.
-			avg_std_season['AVG'] = [float(sum([self.players[name]['H'] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()]), np.std([self.players[name]['AVG'] for name in self.players.keys()])]
+			avg_std_season['AVG'] = [float(sum([self.players[name]['H'] for name in self.players.keys() if self.players[name]['PA'] > n]))/sum([self.players[name]['AB'] for name in self.players.keys() if self.players[name]['PA'] > n]), np.std([self.players[name]['AVG'] for name in self.players.keys() if self.players[name]['PA'] > n])]
 			
 			# Compute SLG league-wide average and st.dev			
 			avg_std_season['SLG'] = [float(sum([self.players[name]['TB'] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()]), np.std([self.players[name]['SLG'] for name in self.players.keys()])]
@@ -179,11 +189,18 @@ class YearSummary(object):
 					if self.players[name][stat+'z'] > 4:
 						self.players[name][stat+'z'] = 4.0
 					elif self.players[name][stat+'z'] < -4:
-						self.players[name][stat+'z'] = 4.0
+						self.players[name][stat+'z'] = -4.0
 				
 				self.players[name]['AVGz'] = (self.players[name]['AVG'] - avg_std_season['AVG'][0])/avg_std_season['AVG'][1]
 				self.players[name]['SLGz'] = (self.players[name]['SLG'] - avg_std_season['SLG'][0])/avg_std_season['SLG'][1]
 				self.players[name]['OBPz'] = (self.players[name]['OBP'] - avg_std_season['OBP'][0])/avg_std_season['OBP'][1]
+				
+				for stat in ['AVGz', 'SLGz', 'OBPz']:
+					if self.players[name][stat] > 4:
+						self.players[name][stat] = 4.0
+					elif self.players[name][stat] < -4:
+						self.players[name][stat] = -4.0
+					
 			
 			# Update .csv file with season information for each player, for each year.
 			print "Updating", outname
@@ -212,9 +229,8 @@ class YearSummary(object):
 		dict = dictionary to be updated.
 		"""
 		
-		
-		# Outs attributed to fielders
-		if re.search('^[0-9]',p6):
+		# Outs attributed to fielders. '99' is code used for unknown play. More relevant for older files (e.g., 1970s).
+		if all([re.search('^[0-9]',p6), not p6.startswith('99')]):
 			dict[p3]["PA"] += 1	
 			dict[p3]["AB"] += 1
 		# Single
@@ -267,7 +283,7 @@ class YearSummary(object):
 		# Catcher interference.
 		elif re.search('^C',p6):
 			dict[p3]["PA"] += 1
-		# If none of these, send to error dictionary.
+		# If none of these, send to error dictionary. '99' events end up in here.
 		else:
 			self.err['file'].append(file)
 			self.err['file'].append(p6)
@@ -431,32 +447,11 @@ class YearSummary(object):
 					# Save information about starting players.
 					elif line.startswith('start'):
 						parts = line.split(',')
-					
+						
 						# If new player ID is encountered, add it to utd (up-to-date) dictionary.
 						if parts[1] not in self.utd.keys():
 	# 						print "First starter entry for",parts[1]
-							self.utd[parts[1]] = {'Year': y, 
-							'G': 1, 
-							'PA': 0,
-							"AB": 0,
-							"H": 0,
-							"S": 0,
-							"D": 0,
-							"T": 0,
-							"HR": 0,
-							"BB": 0,
-							"K": 0,
-							"HP":0,
-							"IBB": 0,
-							"TB": 0,
-							"AVG": 0.0,
-							"OBP": 0.0,
-							"SLG": 0.0,
-							"OPS":0,
-							"ROE":0,
-							"FC":0,
-							"SF":0,
-							"SH":0}
+							self.utd[parts[1]] = {'Year': y, 'G': 1, 'PA': 0, "AB": 0, "H": 0, "S": 0, "D": 0, "T": 0, "HR": 0, "BB": 0, "K": 0, "HP":0, "IBB": 0, "TB": 0, "AVG": 0.0, "OBP": 0.0, "SLG": 0.0, "OPS":0, "ROE":0, "FC":0, "SF":0, "SH":0}
 						
 							# For each new player ID, read career information into another dictionary that can be repeatedly accessed whenever this player re-appears throughout the season.
 							self.career_to_date(parts[1],y)
@@ -567,7 +562,7 @@ class YearSummary(object):
 			c = 0
 			
 			# Read previously created file.
-			yname = 'YearSummary%s_%s.csv' % (str(self.year_start), str(self.year_finish))
+			yname = 'YearSummary%s_%s.csv' % (str(self.min_year), str(self.max_year))
 			with open(yname) as csvfile:
 				r = csv.DictReader(csvfile)
 				
@@ -610,3 +605,11 @@ class YearSummary(object):
 				if c == 0:
 					print "%s not found! ROOKIE BIATCH!" % id
 				else: print 'CTD complete for %s with %d years included.' % (id, c)
+
+
+# a = be.YearSummary(2014,2014)
+## Extract summary season data for specified years.
+# b = a.season_extract()
+## 
+# a = be.YearSummary(2013)
+# b = a.utd_stats()
