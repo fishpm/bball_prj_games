@@ -28,7 +28,7 @@ CREATE TABLE year_summary (
     SLG float,
     OBP float,
     OPS float,
-    SH float,
+    SH integer,
     Year date,
     AVG float,
     SF integer
