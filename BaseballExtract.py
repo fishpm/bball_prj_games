@@ -153,10 +153,10 @@ class YearSummary(object):
 			avg_std_season['AVG'] = [float(sum([self.players[name]['H'] for name in self.players.keys() if self.players[name]['PA'] > n]))/sum([self.players[name]['AB'] for name in self.players.keys() if self.players[name]['PA'] > n]), np.std([self.players[name]['AVG'] for name in self.players.keys() if self.players[name]['PA'] > n])]
 			
 			# Compute SLG league-wide average and st.dev			
-			avg_std_season['SLG'] = [float(sum([self.players[name]['TB'] for name in self.players.keys()]))/sum([self.players[name]['AB'] for name in self.players.keys()]), np.std([self.players[name]['SLG'] for name in self.players.keys()])]
+			avg_std_season['SLG'] = [float(sum([self.players[name]['TB'] for name in self.players.keys() if self.players[name]['PA'] > n]))/sum([self.players[name]['AB'] for name in self.players.keys() if self.players[name]['PA'] > n]), np.std([self.players[name]['SLG'] for name in self.players.keys() if self.players[name]['PA'] > n])]
 			
 			# Computer OBP league-wide average and st.dev
-			avg_std_season['OBP'] = [float(sum([self.players[name]['H'] + self.players[name]['BB'] + self.players[name]['HP'] for name in self.players.keys()]))/sum([self.players[name]['AB'] + self.players[name]['BB'] + self.players[name]['HP'] + self.players[name]['SF'] for name in self.players.keys()]), np.std([self.players[name]['OBP'] for name in self.players.keys()])]
+			avg_std_season['OBP'] = [float(sum([self.players[name]['H'] + self.players[name]['BB'] + self.players[name]['HP'] for name in self.players.keys() if self.players[name]['PA'] > n]))/sum([self.players[name]['AB'] + self.players[name]['BB'] + self.players[name]['HP'] + self.players[name]['SF'] for name in self.players.keys() if self.players[name]['PA'] > n]), np.std([self.players[name]['OBP'] for name in self.players.keys() if self.players[name]['PA'] > n])]
 			
 			# Compute fractional occurences for each player...
 			for name in pk:
