@@ -21,7 +21,7 @@ class YearSummary(object):
 		self.warn = []
 		
 		# Possible years bounded by these years.
-		self.min_year = 1980
+		self.min_year = 1970
 		self.max_year = 2014
 		
 		# Miscellaneous events skipped when reading play-by-play.
@@ -606,10 +606,10 @@ class YearSummary(object):
 					print "%s not found! ROOKIE BIATCH!" % id
 				else: print 'CTD complete for %s with %d years included.' % (id, c)
 
-
+# import BaseballExtract as be
 # a = be.YearSummary(2014,2014)
 ## Extract summary season data for specified years.
 # b = a.season_extract()
 ## 
-# a = be.YearSummary(2013)
+# a = be.YearSummary(2005,2014)
 # b = a.utd_stats()
