@@ -15,10 +15,13 @@ class RetrosheetLineParser()
                 , "version" : self.parse_version
                 , "info": self.parse_info
                 , "start": self.parse_start
-                , "play": self.parse_play
+                , "play": self.parse_play 
                 , "sub": self.parse_sub
                 , "data": self.parse_data
                 , "com": self.com
+                , "ladj": self.parse_ladj
+                , "badj": self.parse_badj
+                , "padj": self.parse_padj
                 }
         
         info_types = ['visteam', 'hometeam', 'site', 'date', 'number', 'starttime', 'daynight', 'usedh', 'umphome', 'ump1b', 'ump2b', 'ump3b', 'howscored', 'pitches', 'temp', 'winddir', 'windspeed', 'fieldcond', 'precip', 'sky', 'timeofgame', 'attendance', 'wp', 'lp', 'save', 'gwrbi']
@@ -74,7 +77,7 @@ class RetrosheetLineParser()
 
     def parse_info(self, retro_list):
     	"Parse the info type"
-    	# We don't need to read all "info" rows. For example, an "info" row repeats the game date, which is already collected from "id".  There are other random "info" types that are not particularly relevant.
+    	# We don't need to read all "info" rows. For example, an "info" row repeats the game date, which is already collected from "id".  There are other random "info" types that are not particularly relevant. Perhaps it is better to trim those less relevant info lines later?
     	if retro_list[1] in self.info_types:
 	    	info_instance = {retro_list[1]: retro_list[2]}
 	    return info_instance
@@ -94,19 +97,57 @@ class RetrosheetLineParser()
 
     def parse_play(self, retro_list):
         "Parse the play type"
+        # I wonder if I am over-thinking it here by trying to read only the play lines that have a meaningful play involved.  Keep this object and its methods as more purely reading the data?
         if retro_list[6].startswith(self.play_types):
-        	# If starts with '99' then play unknown.
-        	if retro_list[6].startswith('99'):
-        		pass
-        	else:
-        		pass
-
+        	play_instance = {
+        			'inning': retro_list[1]
+        			, 'top_bottom': retro_list[2]
+        			, 'player_id': retro_list[3]
+        			, 'count': retro_list[4]
+        			, 'pitch_seq': retro_list[5]
+        			, 'play_event': retro_list[6]
+        			}
+        	return play_instance
 
     def parse_sub(self, retro_list):
         "Parse the sub type"
-        pass
-
+        # Note: def_position == 11: pinch hitter, def_position == 12: pinch runner
+        sub_instance = {
+        		'player_id': retro_list[1]
+        		, 'player_name': retro_list[2]
+        		, 'player_team': retro_list[3]
+        		, 'batting_order': retro_list[4]
+        		, 'def_position': retro_list[5]
+        		}
+        return sub_instance
 
     def parse_data(self, retro_list):
-        "Parse the retrodata 'data' type"
-        pass
+        "Parse the 'data' type"
+        data_instance = {
+        		'player_id': retro_list[2]
+        		, 'earned_runs': retro_list[3]
+        		}
+    
+    def parse_ladj(self, retro_list):
+    	"Parse the ladj type"
+    	# I looked at the scoring of a few instances where there was BOOT and ladj was not used.  Not sure when or why it is used.
+    	ladj_instance = {
+    			'team': retro_list[1]
+    			, 'batting_order': retro_list[2]
+    	pass
+    
+    def parse_badj(self, retro_list):
+    	"Parse the badj type"
+    	badj_instance = {
+    			'player_id': retro_list[1]
+    			, 'badj_note': retro_list[2]
+    			}
+    
+    def parse_padj(self, retro_list):
+    	"Parse the padj type"
+    	padj_instance = {
+    			'player_id': retro_list[1]
+    			, 'padj_note': retro_list[2]
+    			}
+    	pass
+    	
