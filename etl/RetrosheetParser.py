@@ -6,10 +6,10 @@ Goal: turn data into relational tables
 """
 
 
-class RetrosheetLineParser()
+class RetrosheetLineParser(object):
 
 
-    def init(self):
+    def __init__(self):
         parser_map = {
                 "id" : self.parse_id
                 , "version" : self.parse_version
@@ -72,8 +72,8 @@ class RetrosheetLineParser()
     
     def parse_version(self, retro_list):
         "Parse the version type"
+        # Indicated on retrosheet.org that the version record is obsolete.
         pass
-
 
     def parse_info(self, retro_list):
     	"Parse the info type"
@@ -101,7 +101,7 @@ class RetrosheetLineParser()
         if retro_list[6].startswith(self.play_types):
         	play_instance = {
         			'inning': retro_list[1]
-        			, 'top_bottom': retro_list[2]
+        			, 'home_team': retro_list[2]
         			, 'player_id': retro_list[3]
         			, 'count': retro_list[4]
         			, 'pitch_seq': retro_list[5]
@@ -130,11 +130,10 @@ class RetrosheetLineParser()
     
     def parse_ladj(self, retro_list):
     	"Parse the ladj type"
-    	# I looked at the scoring of a few instances where there was BOOT and ladj was not used.  Not sure when or why it is used.
+    	# I looked at the scoring of a few instances where there was batting out of turn and ladj was not used ('BOOT' was used).  Not sure when or why it is used.
     	ladj_instance = {
     			'team': retro_list[1]
     			, 'batting_order': retro_list[2]
-    	pass
     
     def parse_badj(self, retro_list):
     	"Parse the badj type"
@@ -149,5 +148,4 @@ class RetrosheetLineParser()
     			'player_id': retro_list[1]
     			, 'padj_note': retro_list[2]
     			}
-    	pass
     	
