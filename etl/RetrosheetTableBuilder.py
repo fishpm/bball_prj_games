@@ -24,7 +24,8 @@ class RetrosheetTableBuilder(object):
         GAME_INFO_TABLE = 'game_info'
         PLAY_BY_PLAY_TABLE = 'play_by_play'
         STARTERS_TABLE = 'starters'
-
+        
+        rts_line_types = RetrosheetLineParser.parser_map.keys()
 
     def build_rts_tables(self, dir_path, tmp_dir):
         """From a directory of retrosheet files, build relational tables"""
@@ -35,24 +36,38 @@ class RetrosheetTableBuilder(object):
             if isfile(join(dir_path, element)) and \
                 element.lower().endswith(('.eva', '.evn')):
                 # file_path was not previously defined.
-                self.file_path = join(dir_path, element)
-                self.rts_line_parser(self.file_path, tmp_dir)
+                file_path = join(dir_path, element)
+                self.rts_line_parser(file_path, tmp_dir)
                 self.rts_db_update(tmp_dir)
                 self.clean_tmp_dir(tmp_dir)
             else:
                 print('Unrecognized file: %s. Skipping' % (element))
 
-
     def rts_line_parser(self, file_path, tmp_dir):
         """From a retrosheet file, parse it into a relational table"""
-#         a = RetrosheetLineParser()
-#         with open(self.file_path,'r') as f:
+
+## My line of thinking with what is below is that the code needs to create a dictionary in the python environment that will be saved (temporarily) as a .csv (probably) and ultimately moved to a remote relational table (postgres).  Therefore, I think step 1 is creating dictionaries with keys corresponding to the variable names that will ultimately be stored in the relational tables. At least that's my line of thinking.
+
+#         temp_game_info = dict.fromkeys([
+#         		'game_id' , 'vistteam', 'hometeam', 'site', 'date', 'number', 'starttime', 'day_night', 'dh', 'umphome', 'ump1b', 'ump2b', 'ump3b', 'pitches', 'temp', 'winddir', 'windspeed', 'fieldcond', 'precip', 'sky', 'time_of_game', 'attendance', 'wp', 'lp', 'save', 'gwrbi', 'prim_key'
+#         		])
+#         
+#         temp_pbp = dict.fromkeys([
+#         		'game_id', 'rts_player_id', 'rts_play_sequence', 'player_team', 'play_type', 'inning', 'bottom_inning', 'home_team', 'rts_pitch_count', 'rts_pitch_seq', 'play_meta', 'sub_batting_order', 'sub_field_position', 'prim_key'
+#         		])
+#                
+#         temp_starters = dict.fromkeys([
+#                 'game_id', 'rts_player_id', 'player_name', 'player_team', 'home_team', 'batting_order', 'field_position', 'prim_key'
+#                 ])
+
+## I am a little in doubt about precisely how to structure this.  For example, we need to know what type of instance is returned for each line in order to know what to do with it, right?
+
+#         with open(file_path,'r') as f:
 #         	for line in f:
-#         		line_parts = line.split(',')
-#         		a.type_parser(line_parts, a.parser_map)
+#         		morsel = RetrosheetLineParser.type_parser(line,
+#         			RetrosheetLineParser.parser_map)        
 	    pass
-
-
+	
     def rts_db_update(self, tmp_dir):
         """Update the database from a set of temp files in relational format"""
         pass
@@ -121,7 +136,6 @@ class RetrosheetTableBuilder(object):
         		, site VARCHAR(5)
         		, date DATE
         		, number INTEGER
-        		# start_time
         		, day_night BOOLEAN
         		, dh BOOLEAN
         		, umphome VARCHAR(8)
@@ -129,7 +143,7 @@ class RetrosheetTableBuilder(object):
         		, ump2b VARCHAR(8)
         		, ump3b VARCHAR(8)
         		, pitches pitches_type
-        		, starttime
+        		, starttime time
         		, temp INTEGER
         		, winddir winddir_type
         		, windspeed INTEGER

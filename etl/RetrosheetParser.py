@@ -14,11 +14,11 @@ class RetrosheetLineParser(object):
                 "id" : self.parse_id
                 , "version" : self.parse_version
                 , "info": self.parse_info
-                , "start": self.parse_start
+                , "start": self.parse_starter
                 , "play": self.parse_play 
                 , "sub": self.parse_sub
                 , "data": self.parse_data
-                , "com": self.com
+                , "com": self.parse_com
                 , "ladj": self.parse_ladj
                 , "badj": self.parse_badj
                 , "padj": self.parse_padj
@@ -27,7 +27,6 @@ class RetrosheetLineParser(object):
         info_types = ['visteam', 'hometeam', 'site', 'date', 'number', 'starttime', 'daynight', 'usedh', 'umphome', 'ump1b', 'ump2b', 'ump3b', 'howscored', 'pitches', 'temp', 'winddir', 'windspeed', 'fieldcond', 'precip', 'sky', 'timeofgame', 'attendance', 'wp', 'lp', 'save', 'gwrbi']
         
         play_types = tuple(['S', 'K', 'D', 'H', 'W', 'IW', 'T', 'E', 'FC', 'HP', 'C', 'NP'] + map(str,range(1,10)))
-
 
     def type_parser(self, retro_list, parser_map):
         "Read the type and pass to the appropriate parser"
@@ -40,7 +39,6 @@ class RetrosheetLineParser(object):
             # TODO: Replace with logger
             print("Unknown retrosheet data type: %s. Skipping" % (retro_type))
         return None 
-
 
     def parse_id(self, retro_list):
         "Parse the id type"
@@ -57,6 +55,7 @@ class RetrosheetLineParser(object):
                 , 'month' : month
                 , 'day' : day
                 , 'game_num' : game_num
+                , 'type': 'id_instance'
                 }
         return id_instance
         
@@ -79,21 +78,23 @@ class RetrosheetLineParser(object):
     	"Parse the info type"
     	# We don't need to read all "info" rows. For example, an "info" row repeats the game date, which is already collected from "id".  There are other random "info" types that are not particularly relevant. Perhaps it is better to trim those less relevant info lines later?
     	if retro_list[1] in self.info_types:
-	    	info_instance = {retro_list[1]: retro_list[2]}
+	    	info_instance = {
+	    		retro_list[1]: retro_list[2]
+	    		, 'type': 'info_instance'
+	    		}
 	    return info_instance
 
-
-    def parse_start(self, retro_list):
-        "Parse the start type"
+    def parse_starter(self, retro_list):
+        "Parse the starter type"
         player_instance = {
         		'player_id': retro_list[1]
         		, 'player_name': retro_list[2]
         		, 'player_team': retro_list[3]
         		, 'batting_order': retro_list[4]
         		, 'def_position': retro_list[5]
+        		, 'type': 'starter_instance'
         		}
-        return player_instance
-
+        return starter_instance
 
     def parse_play(self, retro_list):
         "Parse the play type"
@@ -106,8 +107,10 @@ class RetrosheetLineParser(object):
         			, 'count': retro_list[4]
         			, 'pitch_seq': retro_list[5]
         			, 'play_event': retro_list[6]
+        			, 'type': 'play_instance'
         			}
-        	return play_instance
+        
+        return play_instance
 
     def parse_sub(self, retro_list):
         "Parse the sub type"
@@ -118,6 +121,7 @@ class RetrosheetLineParser(object):
         		, 'player_team': retro_list[3]
         		, 'batting_order': retro_list[4]
         		, 'def_position': retro_list[5]
+        		, 'type': 'sub_instance'
         		}
         return sub_instance
 
@@ -126,7 +130,13 @@ class RetrosheetLineParser(object):
         data_instance = {
         		'player_id': retro_list[2]
         		, 'earned_runs': retro_list[3]
+        		, 'type': 'data_instance'
         		}
+        return data_instance
+    
+    def parse_com(self, retro_list):
+    	"Parse the com type"
+    	pass
     
     def parse_ladj(self, retro_list):
     	"Parse the ladj type"
@@ -134,18 +144,24 @@ class RetrosheetLineParser(object):
     	ladj_instance = {
     			'team': retro_list[1]
     			, 'batting_order': retro_list[2]
+    			, 'type': 'ladj_instance'
+    			}
+    	return ladj_instance
     
     def parse_badj(self, retro_list):
     	"Parse the badj type"
     	badj_instance = {
     			'player_id': retro_list[1]
     			, 'badj_note': retro_list[2]
+    			, 'type': 'badj_instance'
     			}
+    	return badj_instance
     
     def parse_padj(self, retro_list):
     	"Parse the padj type"
     	padj_instance = {
     			'player_id': retro_list[1]
     			, 'padj_note': retro_list[2]
+    			, 'type': 'padj_instance'
     			}
-    	
+    	return padj_instance
