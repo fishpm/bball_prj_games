@@ -27,7 +27,7 @@ class RetrosheetLineParser(object):
 
     def type_parser(self, retro_list, parser_map):
         "Read the type and pass to the appropriate parser"
-        retro_type = retro_list
+        retro_type = retro_list[0]
         if parser_map.has_key(retro_type):
             parser = self.parser_map[retro_type]
             type_parsed = parser(retro_list)
