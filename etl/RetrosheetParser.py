@@ -8,22 +8,20 @@ Goal: turn data into relational tables
 
 class RetrosheetLineParser(object):
 
-
     def __init__(self):
         parser_map = {
-                "id" : self.parse_id
-                , "version" : self.parse_version
-                , "info": self.parse_info
-                , "start": self.parse_start
-                , "play": self.parse_play 
-                , "sub": self.parse_sub
-                , "data": self.parse_data
-                , "com": self.com
-                , "ladj": self.parse_ladj
-                , "badj": self.parse_badj
-                , "padj": self.parse_padj
-                }
-        
+            "id": self.parse_id
+            , "version": self.parse_version
+            , "info": self.parse_info
+            , "start": self.parse_start
+            , "play": self.parse_play
+            , "sub": self.parse_sub
+            , "data": self.parse_data
+            , "com": self.parse_com
+            , "ladj": self.parse_ladj
+            , "badj": self.parse_badj
+            , "padj": self.parse_padj
+            }
 
     def type_parser(self, retro_list, parser_map):
         "Read the type and pass to the appropriate parser"
@@ -37,38 +35,34 @@ class RetrosheetLineParser(object):
             print("Unknown retrosheet data type: %s. Skipping" % (retro_type))
         return None 
 
-
     def parse_id(self, retro_list):
         "Parse the id type"
         game_id = retro_list[1]
-        team = game_id[0:2]       
-        year = game_id[3:6]
-        month = game_id[7:8]
-        day = game_id[9:10]
+        team = game_id[0:3]       
+        year = game_id[3:7]
+        month = game_id[7:9]
+        day = game_id[9:11]
         game_num = game_id[11]
         id_instance = {
-                'game_id' : game_id
+                'game_id': game_id
                 , 'team': team
                 , 'year' : year
-                , 'month' : month
-                , 'day' : day
-                , 'game_num' : game_num
+                , 'month': month
+                , 'day': day
+                , 'game_num': game_num
                 }
         return id_instance
-        
-    
+
     def parse_version(self, retro_list):
         "Parse the version type"
         # Indicated on retrosheet.org that the version record is obsolete.
         pass
 
-
     def parse_info(self, retro_list):
-    	"Parse the info type"
-   	if retro_list[1] in self.info_types:
-	    	info_instance = {retro_list[1]: retro_list[2]}
-	    return info_instance
-
+        "Parse the info type"
+        if retro_list[1] in self.info_types:
+                info_instance = {retro_list[1]: retro_list[2]}
+        return info_instance
 
     def parse_start(self, retro_list):
         "Parse the start type"
