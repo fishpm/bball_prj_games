@@ -9,7 +9,7 @@ Goal: turn data into relational tables
 class RetrosheetLineParser(object):
 
     def __init__(self):
-        parser_map = {
+        self.parser_map = {
             "id": self.parse_id
             , "version": self.parse_version
             , "info": self.parse_info
@@ -33,7 +33,7 @@ class RetrosheetLineParser(object):
         else:
             # TODO: Replace with logger
             print("Unknown retrosheet data type: %s. Skipping" % (retro_type))
-        return None 
+            return None
 
     def parse_id(self, retro_list):
         "Parse the id type"
@@ -60,8 +60,7 @@ class RetrosheetLineParser(object):
 
     def parse_info(self, retro_list):
         "Parse the info type"
-        if retro_list[1] in self.info_types:
-                info_instance = {retro_list[1]: retro_list[2]}
+        info_instance = {retro_list[1]: retro_list[2]}
         return info_instance
 
     def parse_start(self, retro_list):
@@ -71,7 +70,7 @@ class RetrosheetLineParser(object):
         		, 'player_name': retro_list[2]
         		, 'player_team': retro_list[3]
         		, 'batting_order': retro_list[4]
-        		, 'def_position': retro_list[5]
+        		, 'field_position': retro_list[5]
         		}
         return player_instance
 
@@ -81,7 +80,7 @@ class RetrosheetLineParser(object):
         play_instance = {
                 'inning': retro_list[1]
                 , 'home_team': retro_list[2]
-                , 'rts_player_id': retro_list[3]
+                , 'player_id': retro_list[3]
                 , 'rts_pitch_count': retro_list[4]
                 , 'rts_pitch_seq': retro_list[5]
                 , 'play_meta': retro_list[6]
@@ -96,7 +95,7 @@ class RetrosheetLineParser(object):
         		, 'player_name': retro_list[2]
         		, 'player_team': retro_list[3]
         		, 'batting_order': retro_list[4]
-        		, 'def_position': retro_list[5]
+        		, 'field_position': retro_list[5]
         		}
         return sub_instance
 
@@ -107,6 +106,7 @@ class RetrosheetLineParser(object):
         		'player_id': retro_list[2]
         		, 'earned_runs': retro_list[3]
         		}
+        return data_instance
 
 
     def parse_ladj(self, retro_list):
