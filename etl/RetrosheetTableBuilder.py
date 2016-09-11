@@ -7,10 +7,11 @@ import os
 from os import listdir
 from os.path import isfile, join
 import sys
+import itertools
 
 import psycopg2
 
-from RetrosheetParser import RetrosheetLineParser
+from etl.RetrosheetParser import RetrosheetLineParser
 
 class RetrosheetTableBuilder(object):
 
@@ -32,7 +33,7 @@ class RetrosheetTableBuilder(object):
         for element in listdir(dir_path):
             if isfile(join(dir_path, element)) and \
                 element.lower().endswith(('.eva', '.evn')):
-                # file_path was not previously defined.
+                
                 self.file_path = join(dir_path, element)
                 self.rts_line_parser(self.file_path, tmp_dir)
                 self.rts_db_update(tmp_dir)
@@ -41,17 +42,19 @@ class RetrosheetTableBuilder(object):
                 print('Unrecognized file: %s. Skipping' % (element))
 
 
-    def rts_line_parser(self, file_path, tmp_dir):
+    def rts_line_parser(self, file_path, tmp_dir=''):
         """From a retrosheet file, parse it into a relational table"""
-        """
-        a = RetrosheetLineParser()
+
+        rsp = RetrosheetLineParser()
+        tmp_f = open(join(tmp_dir, 'temp.txt'), 'wb')
+        tmp_output = csv.writer(tmp_f, quoting = csv.QUOTE_ALL)
         with open(self.file_path,'r') as f:
             for line in f:
-                line_parts = line.split(',')
-         		a.type_parser(line_parts, a.parser_map)
-	    pass
-        """
-
+                line_parts = line.rstrip().split(',')
+         		parsed_line = rsp.type_parser(line_parts, a.parser_map)
+         		if parsed_line:
+         			parsed_line_list = list(itertools.chain.from_iterable([[k, parsed_line[k]] for k in parsed_line]))
+         			tmp_output.writerow(parsed_line_list)
 
     def rts_db_update(self, tmp_dir):
         """Update the database from a set of temp files in relational format"""
@@ -68,13 +71,13 @@ class RetrosheetTableBuilder(object):
         self.cur.execute("""
             CREATE TABLE starters (
                 game_id VARCHAR(12) NOT NULL
-                , rts_player_id VARCHAR(8) NOT NULL
+                , player_id VARCHAR(8) NOT NULL
                 , player_name VARCHAR(35)
                 , player_team VARCHAR(3)
                 , home_team BOOLEAN
                 , batting_order INTEGER
                 , field_position INTEGER
-                , PRIMARY KEY (game_id, rts_player_id)
+                , PRIMARY KEY (game_id, player_id)
             );
             """)
         cur.commit()
@@ -86,7 +89,7 @@ class RetrosheetTableBuilder(object):
 
             CREATE TABLE play_by_play (
                game_id VARCHAR(12) NOT NULL
-               , rts_player_id VARCHAR(8) NOT NULL
+               , player_id VARCHAR(8) NOT NULL
                , rts_play_sequence INTEGER NOT NULL
                , player_team VARCHAR(3)
                , play_type play_type 
@@ -98,7 +101,7 @@ class RetrosheetTableBuilder(object):
                , play_meta VARCHAR(20)
                , sub_batting_order INTEGER
                , sub_field_position INTEGER
-               , PRIMARY KEY (game_id, rts_player_id, rts_play_sequence)
+               , PRIMARY KEY (game_id, player_id, rts_play_sequence)
             );
         """)
         cur.commit()
@@ -111,9 +114,9 @@ class RetrosheetTableBuilder(object):
         		, vistteam VARCHAR(3)
         		, hometeam VARCHAR(3)
         		, site VARCHAR(5)
+        		, number INTEGER
         		, date DATE
                 , info JSON
-        		, number INTEGER
         		, PRIMARY KEY (game_id)
         	""");
         	cur.commit()
