@@ -1,5 +1,6 @@
 from etl.RetrosheetParser import RetrosheetLineParser
-
+import csv
+import itertools
 
 def test_parse_id():
     rsp = RetrosheetLineParser()
@@ -105,19 +106,21 @@ def test_parse_com():
 
 
 def test_type_parser():
-	pass
-# 	#Need to specify stable path
-# 	file_path = '/Users/patrickfisher/Documents/mlb/retrosheet/pbp/2013PIT.evn'
-# 	rsp = RetrosheetLineParser()
+	#Need to specify stable path
+	file_path = '/Users/patrickfisher/Documents/mlb/retrosheet/pbp/2013PIT.evn'
+	rsp = RetrosheetLineParser()
 # 	tmp_f = open('file.txt', 'wb')
 # 	tmp_output = csv.writer(tmp_f, quoting = csv.QUOTE_ALL)
-# 	with open(file_path,'r') as f:
-# 		for line in f:
-# 			line_parts = line.rstrip().split(',')
-# 			parsed_line = rsp.type_parser(line_parts, rsp.parser_map)
+	with open(file_path,'r') as f:
+		for line in f:
+			line_parts = line.rstrip().split(',')
+			parsed_line = rsp.type_parser(line_parts, rsp.parser_map)
+			return parsed_line
 # 			if parsed_line:
-# 				parsed_line_list = list(itertools.chain.from_iterable([[k, parsed_line[k]] for k in parsed_line]))
-# 				tmp_output.writerow(parsed_line_list)
+# # 				parsed_line_list = list(itertools.chain.from_iterable([[k, parsed_line[k]] for k in parsed_line]))
+# 				parsed_line_list = sum([[k, parsed_line[k]] for k in parsed_line],[])
+# # 				tmp_output.writerow(parsed_line_list)
+# 				print parsed_line_list
 
 test_parse_id()
 test_parse_info()
